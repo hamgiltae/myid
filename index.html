@@ -100,12 +100,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;position
 .light .id-card{background:#fff;border-color:#c8c8e8;}
 .card-glow{position:absolute;top:-50px;right:-50px;width:160px;height:160px;background:rgba(124,111,255,0.1);border-radius:50%;pointer-events:none;}
 .card-glow2{position:absolute;bottom:-30px;left:-30px;width:100px;height:100px;background:rgba(255,255,255,0.025);border-radius:50%;pointer-events:none;}
-.ctop{display:flex;align-items:flex-start;gap:14px;margin-bottom:18px;}
-.av{width:110px;height:110px;border-radius:22px;border:1.5px solid rgba(124,111,255,0.45);display:flex;align-items:center;justify-content:center;font-size:48px;flex-shrink:0;overflow:hidden;background:#22224a;}
+.ctop{display:flex;flex-direction:column;align-items:center;gap:12px;margin-bottom:18px;}
+.av{width:160px;height:160px;border-radius:28px;border:2px solid rgba(124,111,255,0.55);display:flex;align-items:center;justify-content:center;font-size:72px;flex-shrink:0;overflow:hidden;background:#22224a;box-shadow:0 4px 24px rgba(124,111,255,0.2);}
 .av img{width:100%;height:100%;object-fit:cover;}
-.clabel{font-size:9px;letter-spacing:1.2px;text-transform:uppercase;margin-bottom:3px;}
+.ctop-info{text-align:center;}
+.clabel{font-size:9px;letter-spacing:1.2px;text-transform:uppercase;margin-bottom:5px;text-align:center;}
 .dark .clabel{color:rgba(255,255,255,0.3);}.light .clabel{color:rgba(0,0,0,0.35);}
-.cname{font-size:18px;font-weight:700;margin-bottom:4px;letter-spacing:-0.3px;}
+.cname{font-size:20px;font-weight:700;margin-bottom:6px;letter-spacing:-0.3px;text-align:center;}
 .dark .cname{color:#fff;}.light .cname{color:#111;}
 .vbadge{display:inline-flex;align-items:center;gap:3px;background:rgba(80,210,130,0.12);border:0.5px solid rgba(80,210,130,0.3);border-radius:20px;padding:3px 9px;font-size:9px;color:#50d282;}
 .cfields{display:grid;grid-template-columns:1fr 1fr;gap:10px 16px;margin-bottom:16px;}
@@ -364,7 +365,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;position
           <div class="card-glow"></div><div class="card-glow2"></div>
           <div class="ctop">
             <div class="av" id="home-av"><span id="home-av-emoji">👤</span></div>
-            <div>
+            <div class="ctop-info">
               <div class="clabel">디지털 신분증</div>
               <div class="cname" id="d-name">홍 길 동</div>
               <div class="vbadge"><i class="ti ti-shield-check" style="font-size:10px"></i> 본인인증 완료</div>
