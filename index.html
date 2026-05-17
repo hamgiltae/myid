@@ -114,6 +114,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;position
 .dark .fi .fl{color:rgba(255,255,255,0.28);}.light .fi .fl{color:rgba(0,0,0,0.35);}
 .fi .fv{font-size:13px;font-weight:600;}
 .dark .fi .fv{color:rgba(255,255,255,0.82);}.light .fi .fv{color:#222;}
+.fi.fi-right{text-align:right;}
 .cbot{border-top:0.5px solid;padding-top:12px;display:flex;align-items:flex-end;justify-content:space-between;}
 .dark .cbot{border-color:rgba(255,255,255,0.07);}.light .cbot{border-color:rgba(0,0,0,0.08);}
 .cidinfo{font-size:9.5px;font-family:monospace;letter-spacing:0.4px;line-height:1.85;}
@@ -783,11 +784,14 @@ function renderHomeList(){
 }
 function renderCardFields(){
   const w=document.getElementById('card-fields-wrap'); w.innerHTML='';
+  let col=0;
   cardFieldDefs.forEach(f=>{
     if(!cardFieldVis[f.key])return;
-    const div=document.createElement('div'); div.className='fi';
+    const div=document.createElement('div');
+    div.className='fi'+(col%2===1?' fi-right':'');
     div.innerHTML=`<div class="fl">${f.label}</div><div class="fv">${f.get()}</div>`;
     w.appendChild(div);
+    col++;
   });
 }
 function renderCardFieldToggles(){
