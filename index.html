@@ -1,0 +1,990 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="MyID">
+<meta name="theme-color" content="#09090f">
+<title>MyID</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;width:100%;overflow:hidden;background:#09090f;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;position:fixed;inset:0;}
+
+/* Safe area insets */
+:root{
+  --sat:env(safe-area-inset-top,0px);
+  --sab:env(safe-area-inset-bottom,0px);
+  --sal:env(safe-area-inset-left,0px);
+  --sar:env(safe-area-inset-right,0px);
+}
+
+/* App shell */
+#app{
+  width:100%;height:100%;
+  display:flex;flex-direction:column;
+  position:relative;overflow:hidden;
+  transition:background .3s;
+}
+#app.dark{background:#09090f;}
+#app.light{background:#f0f0f8;}
+
+/* Status bar spacer */
+.sbar-spacer{height:var(--sat);flex-shrink:0;}
+
+/* Main content area */
+#main-area{
+  flex:1;overflow:hidden;position:relative;
+  display:flex;flex-direction:column;
+}
+
+.screen{display:none;flex:1;flex-direction:column;overflow:hidden;}
+.screen.active{display:flex;}
+
+.scontent{
+  flex:1;overflow-y:auto;padding-bottom:24px;
+  -ms-overflow-style:none;scrollbar-width:none;
+}
+.scontent::-webkit-scrollbar{display:none;}
+
+/* Header */
+.aheader{
+  padding:12px 20px 10px;
+  display:flex;align-items:center;justify-content:space-between;
+  flex-shrink:0;
+}
+.atitle{font-size:22px;font-weight:700;letter-spacing:-0.4px;}
+.dark .atitle{color:#fff;}.light .atitle{color:#111;}
+.atitle span{color:#7C6FFF;}
+.hicon{
+  width:36px;height:36px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:16px;cursor:pointer;border:0.5px solid;
+  transition:color .15s,background .15s;
+}
+.dark .hicon{background:#16162a;color:#888;border-color:#2a2a40;}
+.light .hicon{background:#e4e4f4;color:#666;border-color:#c8c8e0;}
+
+/* Bottom tabs */
+.btabs{
+  flex-shrink:0;
+  border-top:0.5px solid;
+  display:flex;
+  padding:10px 0;
+  padding-bottom:calc(10px + var(--sab));
+}
+.dark .btabs{background:#111128;border-color:#2e2e4a;}
+.light .btabs{background:#e8e8f8;border-color:#c8c8e0;}
+.tbtn{
+  flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;
+  cursor:pointer;font-size:10px;
+  transition:color .18s;background:none;border:none;
+  padding:0;
+}
+.tbtn .ti{font-size:22px;}
+.dark .tbtn{color:#777;}.light .tbtn{color:#999;}
+.tbtn.active{color:#7C6FFF;}
+
+/* ID Card */
+.id-card{
+  margin:0 16px 12px;border-radius:20px;
+  padding:20px 22px 22px;border:0.5px solid;
+  position:relative;overflow:hidden;
+}
+.dark .id-card{background:#12122a;border-color:#2a2a5a;}
+.light .id-card{background:#fff;border-color:#c8c8e8;}
+.card-glow{position:absolute;top:-50px;right:-50px;width:160px;height:160px;background:rgba(124,111,255,0.1);border-radius:50%;pointer-events:none;}
+.card-glow2{position:absolute;bottom:-30px;left:-30px;width:100px;height:100px;background:rgba(255,255,255,0.025);border-radius:50%;pointer-events:none;}
+.ctop{display:flex;align-items:flex-start;gap:14px;margin-bottom:18px;}
+.av{width:64px;height:64px;border-radius:14px;border:1.5px solid rgba(124,111,255,0.45);display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0;overflow:hidden;background:#22224a;}
+.av img{width:100%;height:100%;object-fit:cover;}
+.clabel{font-size:9px;letter-spacing:1.2px;text-transform:uppercase;margin-bottom:3px;}
+.dark .clabel{color:rgba(255,255,255,0.3);}.light .clabel{color:rgba(0,0,0,0.35);}
+.cname{font-size:18px;font-weight:700;margin-bottom:4px;letter-spacing:-0.3px;}
+.dark .cname{color:#fff;}.light .cname{color:#111;}
+.vbadge{display:inline-flex;align-items:center;gap:3px;background:rgba(80,210,130,0.12);border:0.5px solid rgba(80,210,130,0.3);border-radius:20px;padding:3px 9px;font-size:9px;color:#50d282;}
+.cfields{display:grid;grid-template-columns:1fr 1fr;gap:10px 16px;margin-bottom:16px;}
+.fi .fl{font-size:8px;letter-spacing:0.9px;text-transform:uppercase;margin-bottom:2px;}
+.dark .fi .fl{color:rgba(255,255,255,0.28);}.light .fi .fl{color:rgba(0,0,0,0.35);}
+.fi .fv{font-size:13px;font-weight:600;}
+.dark .fi .fv{color:rgba(255,255,255,0.82);}.light .fi .fv{color:#222;}
+.cbot{border-top:0.5px solid;padding-top:12px;display:flex;align-items:flex-end;justify-content:space-between;}
+.dark .cbot{border-color:rgba(255,255,255,0.07);}.light .cbot{border-color:rgba(0,0,0,0.08);}
+.cidinfo{font-size:9.5px;font-family:monospace;letter-spacing:0.4px;line-height:1.85;}
+.dark .cidinfo{color:rgba(255,255,255,0.32);}.light .cidinfo{color:rgba(0,0,0,0.42);}
+.id-status{display:flex;align-items:center;gap:5px;}
+.status-dot{width:6px;height:6px;background:#50d282;border-radius:50%;}
+.status-txt{font-size:10px;color:#50d282;}
+
+/* Privacy bar */
+.priv-bar{
+  margin:0 16px 10px;border-radius:12px;padding:11px 14px;
+  display:flex;align-items:center;justify-content:space-between;border:0.5px solid;
+}
+.dark .priv-bar{background:#14142a;border-color:#22224a;}
+.light .priv-bar{background:#ededff;border-color:#c8c8e8;}
+.pbl{display:flex;align-items:center;gap:9px;}
+.pt1{font-size:12px;}.dark .pt1{color:rgba(255,255,255,0.72);}.light .pt1{color:#333;}
+.pt2{font-size:10px;margin-top:1px;}.dark .pt2{color:rgba(255,255,255,0.28);}.light .pt2{color:rgba(0,0,0,0.4);}
+
+/* Toggle switch */
+.mswitch{position:relative;width:36px;height:20px;cursor:pointer;flex-shrink:0;}
+.mswitch input{opacity:0;width:0;height:0;position:absolute;}
+.mtrack{position:absolute;inset:0;border-radius:10px;transition:background .22s;}
+.dark .mtrack{background:#2a2a40;}.light .mtrack{background:#bbb;}
+.mswitch input:checked~.mtrack{background:#7C6FFF !important;}
+.mthumb{position:absolute;top:3px;left:3px;width:14px;height:14px;background:#fff;border-radius:50%;transition:transform .22s;}
+.mswitch input:checked~.mtrack~.mthumb{transform:translateX(16px);}
+
+/* Info rows */
+.isec{padding:0 16px;}
+.irow{
+  display:flex;align-items:center;border-radius:11px;
+  padding:11px 13px;margin-bottom:6px;gap:11px;border:0.5px solid;
+}
+.dark .irow{background:#13132a;border-color:#1e1e38;}
+.light .irow{background:#fff;border-color:#dde;}
+.iico{font-size:16px;color:#7C6FFF;width:18px;text-align:center;flex-shrink:0;}
+.itxt{flex:1;min-width:0;}
+.iname{font-size:10px;margin-bottom:1px;}
+.dark .iname{color:rgba(255,255,255,0.3);}.light .iname{color:rgba(0,0,0,0.4);}
+.ival{font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.dark .ival{color:#e8e8f0;}.light .ival{color:#222;}
+.ival.hidden{color:transparent !important;background:rgba(128,128,128,0.18);border-radius:3px;user-select:none;min-width:80px;display:inline-block;}
+
+/* Edit screen */
+.editscreen{padding:0 16px 10px;}
+.edit-avatar-area{text-align:center;padding:14px 0 10px;}
+.edit-av{
+  width:80px;height:80px;border-radius:20px;border:2px solid #7C6FFF;
+  margin:0 auto 7px;display:flex;align-items:center;justify-content:center;
+  font-size:32px;cursor:pointer;position:relative;overflow:hidden;background:#22224a;
+}
+.light .edit-av{background:#ededff;}
+.edit-av img{width:100%;height:100%;object-fit:cover;}
+.edit-av-btn{position:absolute;bottom:-2px;right:-2px;width:24px;height:24px;background:#7C6FFF;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff;z-index:2;}
+.edit-av-hint{font-size:11px;}.dark .edit-av-hint{color:rgba(255,255,255,0.3);}.light .edit-av-hint{color:rgba(0,0,0,0.4);}
+
+.gallery-panel{display:none;margin:0 0 10px;border-radius:14px;border:0.5px solid;overflow:hidden;}
+.dark .gallery-panel{background:#11112a;border-color:#2a2a4a;}
+.light .gallery-panel{background:#f4f4ff;border-color:#c8c8e8;}
+.gallery-panel.open{display:block;}
+.gallery-tabs{display:flex;border-bottom:0.5px solid;}
+.dark .gallery-tabs{border-color:#2a2a4a;}.light .gallery-tabs{border-color:#c8c8e8;}
+.gtab{flex:1;padding:9px 0;font-size:11px;font-weight:500;text-align:center;cursor:pointer;transition:all .15s;}
+.dark .gtab{color:#666;background:transparent;}.light .gtab{color:#999;background:transparent;}
+.gtab.active{color:#7C6FFF;}
+.dark .gtab.active{background:#1a1a38;}.light .gtab.active{background:#eaeaff;}
+.gallery-content{display:none;padding:10px;}.gallery-content.active{display:block;}
+.emoji-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;}
+.emoji-cell{aspect-ratio:1;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:22px;cursor:pointer;border:1.5px solid transparent;transition:all .15s;}
+.dark .emoji-cell{background:#1e1e3a;}.light .emoji-cell{background:#e8e8ff;}
+.emoji-cell:hover,.emoji-cell.sel{border-color:#7C6FFF;background:rgba(124,111,255,0.15);}
+.upload-zone{border:1.5px dashed;border-radius:12px;padding:20px 12px;text-align:center;cursor:pointer;transition:border-color .15s;}
+.dark .upload-zone{border-color:#2a2a4a;color:rgba(255,255,255,0.3);}
+.light .upload-zone{border-color:#c0c0e0;color:rgba(0,0,0,0.35);}
+.upload-zone:hover{border-color:#7C6FFF;}
+.upload-zone i{font-size:26px;color:#7C6FFF;margin-bottom:6px;display:block;}
+.upload-zone p{font-size:11px;line-height:1.5;}
+.upload-preview-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px;}
+.upload-prev-cell{aspect-ratio:1;border-radius:10px;overflow:hidden;border:1.5px solid transparent;cursor:pointer;position:relative;}
+.upload-prev-cell img{width:100%;height:100%;object-fit:cover;}
+.upload-prev-cell.sel{border-color:#7C6FFF;}
+.upload-prev-cell .sel-mark{display:none;position:absolute;top:3px;right:3px;background:#7C6FFF;border-radius:50%;width:16px;height:16px;align-items:center;justify-content:center;font-size:9px;color:#fff;}
+.upload-prev-cell.sel .sel-mark{display:flex;}
+
+.esec-title{font-size:9px;letter-spacing:1px;text-transform:uppercase;margin:14px 0 7px 2px;}
+.dark .esec-title{color:rgba(255,255,255,0.3);}.light .esec-title{color:rgba(0,0,0,0.4);}
+.efield{border-radius:11px;padding:11px 14px;margin-bottom:6px;border:0.5px solid;transition:border-color .18s;}
+.dark .efield{background:#13132a;border-color:#1e1e38;}.light .efield{background:#fff;border-color:#dde;}
+.efield:focus-within{border-color:rgba(124,111,255,0.5);}
+.eflabel{font-size:9px;letter-spacing:0.8px;text-transform:uppercase;margin-bottom:4px;}
+.dark .eflabel{color:rgba(255,255,255,0.3);}.light .eflabel{color:rgba(0,0,0,0.4);}
+.efinput{background:none;border:none;outline:none;width:100%;font-size:13px;font-family:inherit;font-weight:500;}
+.dark .efinput{color:#e8e8f0;}.light .efinput{color:#222;}
+.efinput::placeholder{color:rgba(128,128,128,0.4);}
+.save-btn{display:block;width:100%;padding:14px;background:#7C6FFF;border:none;border-radius:13px;font-size:14px;font-weight:600;color:#fff;cursor:pointer;font-family:inherit;margin-top:18px;transition:opacity .15s;}
+.save-btn:active{opacity:.85;}
+.cancel-btn{display:block;width:100%;padding:12px;background:none;border-radius:13px;font-size:13px;cursor:pointer;font-family:inherit;margin-top:8px;}
+.dark .cancel-btn{border:0.5px solid #2a2a40;color:rgba(255,255,255,0.4);}
+.light .cancel-btn{border:0.5px solid #ccc;color:rgba(0,0,0,0.4);}
+
+/* Toast */
+.toast{
+  position:fixed;bottom:calc(80px + var(--sab));left:50%;
+  transform:translateX(-50%);
+  background:#7C6FFF;color:#fff;font-size:12px;
+  padding:8px 18px;border-radius:20px;
+  white-space:nowrap;opacity:0;transition:opacity .25s;
+  pointer-events:none;z-index:100;
+}
+.toast.show{opacity:1;}
+
+/* Settings rows */
+.srow{display:flex;align-items:center;border-radius:11px;padding:12px 14px;margin-bottom:6px;gap:11px;border:0.5px solid;cursor:pointer;}
+.dark .srow{background:#13132a;border-color:#1e1e38;}.light .srow{background:#fff;border-color:#dde;}
+.sico{font-size:16px;color:#7C6FFF;width:18px;text-align:center;}
+.slbl{flex:1;font-size:13px;}.dark .slbl{color:#ddd;}.light .slbl{color:#333;}
+.sval{font-size:11px;}.dark .sval{color:rgba(255,255,255,0.28);}.light .sval{color:rgba(0,0,0,0.4);}
+.schev{font-size:13px;margin-left:8px;}.dark .schev{color:#333;}.light .schev{color:#bbb;}
+
+/* MyInfo tabs */
+.settings-tabs{display:flex;gap:6px;padding:0 16px 10px;margin-top:4px;}
+.stab{flex:1;padding:8px 0;border-radius:10px;font-size:11px;font-weight:500;text-align:center;cursor:pointer;border:0.5px solid;transition:all .18s;}
+.dark .stab{background:#13132a;border-color:#1e1e38;color:#888;}
+.light .stab{background:#fff;border-color:#dde;color:#888;}
+.stab.active{background:#7C6FFF;border-color:#7C6FFF;color:#fff;}
+.stab-content{display:none;padding:0 16px;}.stab-content.active{display:block;}
+
+/* Theme buttons */
+.theme-btn{display:flex;align-items:center;gap:10px;border-radius:12px;padding:14px;margin-bottom:8px;border:0.5px solid;cursor:pointer;transition:border-color .18s;}
+.dark .theme-btn{background:#13132a;border-color:#1e1e38;}.light .theme-btn{background:#fff;border-color:#dde;}
+.theme-btn.selected{border-color:#7C6FFF !important;border-width:1.5px;}
+.theme-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.theme-lbl{flex:1;font-size:13px;font-weight:500;}.dark .theme-lbl{color:#ddd;}.light .theme-lbl{color:#333;}
+.theme-check{font-size:16px;color:#7C6FFF;}
+
+/* Checkboxes */
+.check-row{display:flex;align-items:center;border-radius:11px;padding:11px 13px;margin-bottom:6px;gap:11px;border:0.5px solid;cursor:pointer;}
+.dark .check-row{background:#13132a;border-color:#1e1e38;}.light .check-row{background:#fff;border-color:#dde;}
+.check-lbl{flex:1;font-size:13px;}.dark .check-lbl{color:#ddd;}.light .check-lbl{color:#333;}
+.cbox{width:18px;height:18px;border-radius:5px;border:1.5px solid #444;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .15s,border-color .15s;}
+.cbox.checked{background:#7C6FFF;border-color:#7C6FFF;}
+.cbox i{font-size:11px;color:#fff;}
+.etc-sec-label{font-size:9px;letter-spacing:1px;text-transform:uppercase;margin:14px 0 7px 2px;padding:0 2px;}
+.dark .etc-sec-label{color:rgba(255,255,255,0.25);}.light .etc-sec-label{color:rgba(0,0,0,0.35);}
+
+/* Lock screen */
+.lock-screen{
+  display:none;position:absolute;inset:0;z-index:50;
+  flex-direction:column;align-items:center;
+  padding:calc(40px + var(--sat)) 24px calc(24px + var(--sab));
+}
+.lock-screen.active{display:flex;}
+.dark .lock-screen{background:#09090f;}.light .lock-screen{background:#f0f0f8;}
+.lock-logo{font-size:26px;font-weight:700;letter-spacing:-0.4px;margin-bottom:6px;}
+.dark .lock-logo{color:#fff;}.light .lock-logo{color:#111;}
+.lock-logo span{color:#7C6FFF;}
+.lock-sub{font-size:11px;margin-bottom:32px;}
+.dark .lock-sub{color:rgba(255,255,255,0.3);}.light .lock-sub{color:rgba(0,0,0,0.4);}
+.lock-dots{display:flex;gap:14px;margin-bottom:28px;}
+.ldot{width:13px;height:13px;border-radius:50%;border:1.5px solid #444;background:transparent;transition:background .12s,border-color .12s;}
+.ldot.filled{background:#7C6FFF;border-color:#7C6FFF;}
+.ldot.error{background:#d06060;border-color:#d06060;}
+.ldot.success{background:#50d282;border-color:#50d282;}
+.pin-pad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;width:100%;max-width:320px;margin-bottom:10px;}
+.pkey{border-radius:14px;padding:15px 0;font-size:22px;font-weight:500;cursor:pointer;text-align:center;transition:background .12s;user-select:none;border:0.5px solid;}
+.dark .pkey{background:#16162a;border-color:#2a2a40;color:#fff;}
+.light .pkey{background:#e0e0f4;border-color:#c8c8e0;color:#111;}
+.pkey:active{opacity:.7;}
+.pkey.del{font-size:16px;}.dark .pkey.del{color:#888;}.light .pkey.del{color:#888;}
+.pkey.confirm-key{background:#7C6FFF !important;border-color:#7C6FFF !important;font-size:14px;color:#fff !important;font-weight:600;}
+.lock-error{font-size:11px;color:#d06060;min-height:16px;text-align:center;margin-bottom:8px;}
+.bio-area{width:100%;display:flex;flex-direction:column;align-items:center;margin-top:auto;padding-top:12px;border-top:0.5px solid;}
+.dark .bio-area{border-color:#1e1e32;}.light .bio-area{border-color:#ccc;}
+.bio-icon-wrap{width:62px;height:62px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin-bottom:10px;cursor:pointer;transition:border-color .2s;border:1.5px solid;}
+.dark .bio-icon-wrap{background:#13132a;border-color:#2a2a50;}
+.light .bio-icon-wrap{background:#e8e8f8;border-color:#c0c0e0;}
+.bio-icon-wrap:hover{border-color:#7C6FFF;}
+.bio-icon-wrap.scanning{border-color:#7C6FFF;animation:bioscan 1s ease-in-out;}
+@keyframes bioscan{0%{box-shadow:0 0 0 0 rgba(124,111,255,0.5);}70%{box-shadow:0 0 0 12px rgba(124,111,255,0);}100%{box-shadow:0 0 0 0 rgba(124,111,255,0);}}
+.bio-fp{width:34px;height:34px;color:#7C6FFF;}
+.bio-label{font-size:11px;}.dark .bio-label{color:rgba(255,255,255,0.4);}.light .bio-label{color:rgba(0,0,0,0.4);}
+.bio-label.scanning{color:#7C6FFF !important;}
+
+/* Overlays / Modals */
+.overlay{display:none;position:absolute;inset:0;background:rgba(0,0,0,0.7);z-index:60;align-items:flex-end;justify-content:center;}
+.overlay.active{display:flex;}
+.modal{border-radius:20px 20px 0 0;padding:22px 20px calc(22px + var(--sab));width:100%;border:0.5px solid;border-bottom:none;}
+.dark .modal{background:#12122a;border-color:#2a2a5a;}.light .modal{background:#f4f4ff;border-color:#c8c8e8;}
+.modal-title{font-size:15px;font-weight:700;margin-bottom:6px;}
+.dark .modal-title{color:#fff;}.light .modal-title{color:#111;}
+.modal-sub{font-size:11px;margin-bottom:18px;line-height:1.5;}
+.dark .modal-sub{color:rgba(255,255,255,0.35);}.light .modal-sub{color:rgba(0,0,0,0.45);}
+.modal-dots{display:flex;gap:10px;justify-content:center;margin-bottom:18px;}
+.mdot{width:11px;height:11px;border-radius:50%;border:1.5px solid #444;background:transparent;transition:background .12s,border-color .12s;}
+.mdot.filled{background:#7C6FFF;border-color:#7C6FFF;}.mdot.error{background:#d06060;border-color:#d06060;}
+.modal-pad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px;}
+.mkey{border-radius:11px;padding:14px 0;font-size:20px;font-weight:500;cursor:pointer;text-align:center;transition:background .12s;user-select:none;border:0.5px solid;}
+.dark .mkey{background:#1e1e3a;border-color:#2a2a48;color:#fff;}
+.light .mkey{background:#e8e8f8;border-color:#c8c8e0;color:#111;}
+.mkey:active{opacity:.7;}
+.mkey.del{font-size:14px;color:#888;}
+.mkey.empty{background:transparent !important;border-color:transparent !important;pointer-events:none;}
+.mkey.confirm{background:#7C6FFF !important;border-color:#7C6FFF !important;font-size:13px;font-weight:600;color:#fff !important;}
+.modal-err{font-size:11px;color:#d06060;min-height:14px;text-align:center;margin-bottom:8px;}
+.modal-cancel{width:100%;padding:12px;background:none;border-radius:11px;font-size:13px;cursor:pointer;font-family:inherit;}
+.dark .modal-cancel{border:0.5px solid #2a2a40;color:rgba(255,255,255,0.4);}
+.light .modal-cancel{border:0.5px solid #ccc;color:rgba(0,0,0,0.4);}
+</style>
+</head>
+<body>
+
+<div id="app" class="dark">
+
+  <!-- Lock Screen -->
+  <div class="lock-screen active" id="lock-screen">
+    <div class="lock-logo">My<span>ID</span></div>
+    <div class="lock-sub">PIN을 입력하여 잠금 해제</div>
+    <div class="lock-dots">
+      <div class="ldot" id="ld0"></div><div class="ldot" id="ld1"></div>
+      <div class="ldot" id="ld2"></div><div class="ldot" id="ld3"></div>
+    </div>
+    <div class="pin-pad">
+      <div class="pkey" onclick="pinKey('1')">1</div><div class="pkey" onclick="pinKey('2')">2</div><div class="pkey" onclick="pinKey('3')">3</div>
+      <div class="pkey" onclick="pinKey('4')">4</div><div class="pkey" onclick="pinKey('5')">5</div><div class="pkey" onclick="pinKey('6')">6</div>
+      <div class="pkey" onclick="pinKey('7')">7</div><div class="pkey" onclick="pinKey('8')">8</div><div class="pkey" onclick="pinKey('9')">9</div>
+      <div class="pkey del" onclick="pinDel()"><i class="ti ti-backspace"></i></div>
+      <div class="pkey" onclick="pinKey('0')">0</div>
+      <div class="pkey confirm-key" onclick="pinConfirm()">확인</div>
+    </div>
+    <div class="lock-error" id="lock-error"></div>
+    <div class="bio-area" id="bio-area-lock">
+      <div class="bio-icon-wrap" id="bio-wrap" onclick="bioAuth()">
+        <svg class="bio-fp" viewBox="0 0 34 34" fill="none"><path d="M17 3C9.268 3 3 9.268 3 17s6.268 14 14 14 14-6.268 14-14S24.732 3 17 3z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M10 17c0-3.866 3.134-7 7-7s7 3.134 7 7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M13 17c0-2.21 1.79-4 4-4s4 1.79 4 4c0 2.21-1.79 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M17 17v4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M7 12c1.2-3.5 4.5-6 8.5-6.2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M27 12c-.8-2.3-2.5-4.2-4.7-5.3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M7 22c1 2 2.7 3.7 4.8 4.7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M27 22c-1.2 3-4 5.2-7.3 5.8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      </div>
+      <div class="bio-label" id="bio-label">생체 인증으로 잠금 해제</div>
+    </div>
+  </div>
+
+  <!-- Main area (shown after unlock) -->
+  <div id="main-area">
+    <div class="sbar-spacer"></div>
+
+    <!-- Home Screen -->
+    <div class="screen active" id="s-home">
+      <div class="aheader"><div class="atitle">My<span>ID</span></div></div>
+      <div class="scontent">
+        <div class="id-card">
+          <div class="card-glow"></div><div class="card-glow2"></div>
+          <div class="ctop">
+            <div class="av" id="home-av"><span id="home-av-emoji">👤</span></div>
+            <div>
+              <div class="clabel">디지털 신분증</div>
+              <div class="cname" id="d-name">홍 길 동</div>
+              <div class="vbadge"><i class="ti ti-shield-check" style="font-size:10px"></i> 본인인증 완료</div>
+            </div>
+          </div>
+          <div class="cfields" id="card-fields-wrap"></div>
+          <div class="cbot">
+            <div class="cidinfo">ID: <span id="d-id">KR-2024-001842</span><br>발급: <span id="d-issue">2024.01.15</span><br>만료: <span id="d-expire">2028.01.14</span></div>
+            <div class="id-status"><div class="status-dot"></div><div class="status-txt">유효</div></div>
+          </div>
+        </div>
+        <div class="priv-bar">
+          <div class="pbl">
+            <i class="ti ti-shield-lock" style="font-size:18px;color:#7C6FFF;"></i>
+            <div><div class="pt1">개인정보 보호 모드</div><div class="pt2" id="priv-sub">비활성화 — 정보 표시 중</div></div>
+          </div>
+          <label class="mswitch"><input type="checkbox" id="master-chk" onchange="onPrivToggle(this.checked)"><div class="mtrack"></div><div class="mthumb"></div></label>
+        </div>
+        <div class="isec" id="home-field-list"></div>
+      </div>
+    </div>
+
+    <!-- Edit Screen -->
+    <div class="screen" id="s-edit">
+      <div class="aheader"><div class="atitle">정보 <span>수정</span></div><div class="hicon" onclick="go('myinfo')"><i class="ti ti-x"></i></div></div>
+      <div class="scontent">
+        <div class="editscreen">
+          <div class="edit-avatar-area">
+            <div class="edit-av" id="edit-av-wrap" onclick="toggleGallery()">
+              <span id="edit-av-emoji" style="font-size:32px;">👤</span>
+              <div class="edit-av-btn"><i class="ti ti-camera"></i></div>
+            </div>
+            <div class="edit-av-hint">탭하여 사진 변경</div>
+          </div>
+          <div class="gallery-panel" id="gallery-panel">
+            <div class="gallery-tabs">
+              <div class="gtab active" id="gtab-emoji" onclick="switchGTab('emoji')">아이콘</div>
+              <div class="gtab" id="gtab-upload" onclick="switchGTab('upload')">내 사진</div>
+            </div>
+            <div class="gallery-content active" id="gc-emoji"><div class="emoji-grid" id="emoji-grid"></div></div>
+            <div class="gallery-content" id="gc-upload">
+              <div class="upload-zone" onclick="document.getElementById('photo-input').click()">
+                <i class="ti ti-photo-up"></i>
+                <p>여기를 눌러 갤러리에서 사진 선택</p>
+              </div>
+              <div class="upload-preview-grid" id="upload-preview-grid"></div>
+              <input type="file" id="photo-input" accept="image/*" style="display:none" onchange="handlePhotoUpload(event)">
+            </div>
+          </div>
+          <div class="esec-title">기본 정보</div>
+          <div class="efield"><div class="eflabel">이름</div><input class="efinput" id="ef-name" type="text" placeholder="이름"></div>
+          <div class="efield"><div class="eflabel">생년월일</div><input class="efinput" id="ef-birth" type="text" placeholder="예: 1995.03.22"></div>
+          <div class="efield"><div class="eflabel">성별</div><input class="efinput" id="ef-gender" type="text" placeholder="남성 / 여성"></div>
+          <div class="esec-title">주민등록번호</div>
+          <div class="efield"><div class="eflabel">앞자리</div><input class="efinput" id="ef-ssn-front" type="text" maxlength="6" placeholder="950322" inputmode="numeric"></div>
+          <div class="efield"><div class="eflabel">뒷자리</div><input class="efinput" id="ef-ssn-back" type="password" maxlength="7" placeholder="1234567" inputmode="numeric"></div>
+          <div class="esec-title">신분증 유효기간</div>
+          <div class="efield"><div class="eflabel">발급일</div><input class="efinput" id="ef-issue" type="text" placeholder="2024.01.15"></div>
+          <div class="efield"><div class="eflabel">만료일</div><input class="efinput" id="ef-expire" type="text" placeholder="2028.01.14"></div>
+          <div class="esec-title">연락처</div>
+          <div class="efield"><div class="eflabel">전화번호</div><input class="efinput" id="ef-phone" type="tel" placeholder="010-0000-0000"></div>
+          <div class="efield"><div class="eflabel">이메일</div><input class="efinput" id="ef-email" type="email" placeholder="email@example.com"></div>
+          <div class="esec-title">위치</div>
+          <div class="efield"><div class="eflabel">주소</div><input class="efinput" id="ef-addr" type="text" placeholder="주소 입력"></div>
+          <div class="esec-title">신분증 ID</div>
+          <div class="efield"><div class="eflabel">ID 번호</div><input class="efinput" id="ef-id" type="text" placeholder="KR-2024-001842"></div>
+          <button class="save-btn" onclick="saveInfo()"><i class="ti ti-check"></i> 저장하기</button>
+          <button class="cancel-btn" onclick="go('myinfo')">취소</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MyInfo Screen -->
+    <div class="screen" id="s-myinfo">
+      <div class="aheader"><div class="atitle">내 <span>정보</span></div></div>
+      <div class="scontent">
+        <div style="padding:0 0 20px;">
+          <div style="text-align:center;padding:18px 0 14px;">
+            <div id="myinfo-av" style="width:72px;height:72px;border-radius:18px;background:#22224a;border:1.5px solid #7C6FFF;margin:0 auto 9px;display:flex;align-items:center;justify-content:center;font-size:30px;overflow:hidden;"><span id="myinfo-av-emoji">👤</span></div>
+            <div style="font-size:16px;font-weight:700;" id="s-name">이름 없음</div>
+            <div style="font-size:11px;margin-top:2px;" id="s-id-sub" class="dark-sub"></div>
+          </div>
+          <div class="settings-tabs">
+            <div class="stab active" id="stab-sec" onclick="switchStab('sec')">보안 설정</div>
+            <div class="stab" id="stab-mgr" onclick="switchStab('mgr')">내 정보 관리</div>
+            <div class="stab" id="stab-etc" onclick="switchStab('etc')">기타</div>
+          </div>
+          <div class="stab-content active" id="sc-sec">
+            <div class="srow" onclick="openChangePIN()"><i class="ti ti-lock sico"></i><span class="slbl">PIN 비밀번호 변경</span><i class="ti ti-chevron-right schev"></i></div>
+            <div class="srow"><i class="ti ti-fingerprint sico"></i><span class="slbl">생체 인증</span>
+              <label class="mswitch"><input type="checkbox" id="bio-toggle" checked onchange="toggleBio(this.checked)"><div class="mtrack"></div><div class="mthumb"></div></label>
+            </div>
+            <div style="margin-top:12px;">
+              <button onclick="lockApp()" style="display:block;width:100%;text-align:center;padding:12px;background:rgba(220,50,50,0.08);border:0.5px solid rgba(220,50,50,0.25);border-radius:12px;font-size:13px;color:#d06060;cursor:pointer;font-family:inherit;">잠금 화면으로 돌아가기</button>
+            </div>
+          </div>
+          <div class="stab-content" id="sc-mgr">
+            <div class="srow" onclick="go('edit')"><i class="ti ti-edit sico"></i><span class="slbl">정보 수정</span><i class="ti ti-chevron-right schev"></i></div>
+            <div class="srow" onclick="confirmClearData()"><i class="ti ti-trash sico" style="color:#d06060;"></i><span class="slbl" style="color:#d06060;">모든 데이터 초기화</span><i class="ti ti-chevron-right schev"></i></div>
+            <div class="srow"><i class="ti ti-info-circle sico"></i><span class="slbl">버전</span><span class="sval">v2.0 Mobile</span></div>
+          </div>
+          <div class="stab-content" id="sc-etc">
+            <div class="etc-sec-label">신분증 카드 표시 항목</div>
+            <div id="card-field-toggles"></div>
+            <div class="etc-sec-label">홈 목록 표시 항목</div>
+            <div id="home-field-toggles"></div>
+            <div class="etc-sec-label">보호모드 시 숨길 항목</div>
+            <div id="priv-field-toggles"></div>
+            <div class="etc-sec-label">앱 테마</div>
+            <div class="theme-btn selected" id="theme-dark" onclick="setTheme('dark')">
+              <div class="theme-icon" style="background:#1a1a2e;">🌙</div>
+              <span class="theme-lbl">다크 모드</span>
+              <i class="ti ti-check theme-check" id="theme-dark-check"></i>
+            </div>
+            <div class="theme-btn" id="theme-light" onclick="setTheme('light')">
+              <div class="theme-icon" style="background:#ededff;">☀️</div>
+              <span class="theme-lbl">라이트 모드</span>
+              <i class="ti ti-check theme-check" id="theme-light-check" style="opacity:0;"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom Tabs -->
+    <div class="btabs">
+      <button class="tbtn active" id="t-home" onclick="go('home')"><i class="ti ti-id-badge ti"></i><span>신분증</span></button>
+      <button class="tbtn" id="t-myinfo" onclick="tryGoMyInfo()"><i class="ti ti-user-circle ti"></i><span>내 정보</span></button>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast">저장되었습니다</div>
+
+  <!-- Auth Modal -->
+  <div class="overlay" id="auth-overlay">
+    <div class="modal">
+      <div class="modal-title" id="auth-modal-title">인증 필요</div>
+      <div class="modal-sub" id="auth-modal-sub">계속하려면 PIN을 입력하세요</div>
+      <div class="modal-dots"><div class="mdot" id="ad0"></div><div class="mdot" id="ad1"></div><div class="mdot" id="ad2"></div><div class="mdot" id="ad3"></div></div>
+      <div class="modal-pad">
+        <div class="mkey" onclick="aKey('1')">1</div><div class="mkey" onclick="aKey('2')">2</div><div class="mkey" onclick="aKey('3')">3</div>
+        <div class="mkey" onclick="aKey('4')">4</div><div class="mkey" onclick="aKey('5')">5</div><div class="mkey" onclick="aKey('6')">6</div>
+        <div class="mkey" onclick="aKey('7')">7</div><div class="mkey" onclick="aKey('8')">8</div><div class="mkey" onclick="aKey('9')">9</div>
+        <div class="mkey del" onclick="aDel()"><i class="ti ti-backspace"></i></div>
+        <div class="mkey" onclick="aKey('0')">0</div>
+        <div class="mkey confirm" onclick="aConfirm()">확인</div>
+      </div>
+      <div class="modal-err" id="auth-err"></div>
+      <div id="auth-bio-row" style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:10px;cursor:pointer;" onclick="authBio()">
+        <i class="ti ti-fingerprint" style="font-size:20px;color:#7C6FFF;"></i>
+        <span style="font-size:12px;color:#7C6FFF;">생체 인증으로 확인</span>
+      </div>
+      <button class="modal-cancel" onclick="closeAuthModal()">취소</button>
+    </div>
+  </div>
+
+  <!-- PIN Change Modal -->
+  <div class="overlay" id="pin-change-overlay">
+    <div class="modal">
+      <div class="modal-title" id="modal-title">현재 PIN 입력</div>
+      <div class="modal-sub" id="modal-sub">보안을 위해 현재 PIN을 먼저 입력하세요</div>
+      <div class="modal-dots"><div class="mdot" id="md0"></div><div class="mdot" id="md1"></div><div class="mdot" id="md2"></div><div class="mdot" id="md3"></div></div>
+      <div class="modal-pad">
+        <div class="mkey" onclick="mKey('1')">1</div><div class="mkey" onclick="mKey('2')">2</div><div class="mkey" onclick="mKey('3')">3</div>
+        <div class="mkey" onclick="mKey('4')">4</div><div class="mkey" onclick="mKey('5')">5</div><div class="mkey" onclick="mKey('6')">6</div>
+        <div class="mkey" onclick="mKey('7')">7</div><div class="mkey" onclick="mKey('8')">8</div><div class="mkey" onclick="mKey('9')">9</div>
+        <div class="mkey del" onclick="mDel()"><i class="ti ti-backspace"></i></div>
+        <div class="mkey" onclick="mKey('0')">0</div>
+        <div class="mkey confirm" onclick="mConfirm()">확인</div>
+      </div>
+      <div class="modal-err" id="modal-err"></div>
+      <button class="modal-cancel" onclick="closeModal()">취소</button>
+    </div>
+  </div>
+
+  <!-- Confirm Clear Modal -->
+  <div class="overlay" id="clear-overlay">
+    <div class="modal">
+      <div class="modal-title" style="color:#d06060;">⚠️ 데이터 초기화</div>
+      <div class="modal-sub">저장된 모든 정보(이름, 주민번호, 사진 등)가 삭제됩니다. 이 작업은 되돌릴 수 없습니다.</div>
+      <button onclick="doClearData()" style="display:block;width:100%;padding:13px;background:#d06060;border:none;border-radius:12px;font-size:14px;font-weight:600;color:#fff;cursor:pointer;font-family:inherit;margin-bottom:10px;">모두 삭제</button>
+      <button class="modal-cancel" onclick="document.getElementById('clear-overlay').classList.remove('active')">취소</button>
+    </div>
+  </div>
+
+</div>
+
+<style>
+.dark-sub{color:rgba(255,255,255,0.3);}
+.light .dark-sub{color:rgba(0,0,0,0.4);}
+</style>
+
+<script>
+// ─── 기본값 ───────────────────────────────────────────────
+const DEFAULTS = {
+  pin: '1234',
+  bioEnabled: true,
+  theme: 'dark',
+  name: '홍 길 동',
+  birth: '1995.03.22',
+  gender: '남성',
+  ssnFront: '950322',
+  ssnBack: '1234567',
+  issue: '2024.01.15',
+  expire: '2028.01.14',
+  phone: '010-1234-5678',
+  email: 'hong@example.com',
+  addr: '서울특별시 강남구 테헤란로 123',
+  idNum: 'KR-2024-001842',
+  avatarType: 'emoji',
+  avatarEmoji: '👤',
+  avatarImage: null,
+  cardFieldVis: {birth:true,gender:true},
+  homeFieldVis: {phone:true,email:true,addr:true,ssn:true},
+  privHideSet: {phone:true,email:true,addr:true,ssn:true},
+};
+
+// ─── 상태 로드 ─────────────────────────────────────────────
+function load(key, fallback) {
+  try { const v=localStorage.getItem('myid_'+key); return v!==null?JSON.parse(v):fallback; } catch(e){return fallback;}
+}
+function save(key, val) {
+  try { localStorage.setItem('myid_'+key, JSON.stringify(val)); } catch(e){}
+}
+
+let currentPIN     = load('pin', DEFAULTS.pin);
+let bioEnabled     = load('bio', DEFAULTS.bioEnabled);
+let currentTheme   = load('theme', DEFAULTS.theme);
+
+let userData = load('userData', {
+  name:     DEFAULTS.name,
+  birth:    DEFAULTS.birth,
+  gender:   DEFAULTS.gender,
+  ssnFront: DEFAULTS.ssnFront,
+  ssnBack:  DEFAULTS.ssnBack,
+  issue:    DEFAULTS.issue,
+  expire:   DEFAULTS.expire,
+  phone:    DEFAULTS.phone,
+  email:    DEFAULTS.email,
+  addr:     DEFAULTS.addr,
+  idNum:    DEFAULTS.idNum,
+});
+
+let cardFieldVis = load('cardVis', DEFAULTS.cardFieldVis);
+let homeFieldVis = load('homeVis', DEFAULTS.homeFieldVis);
+let privHideSet  = load('privHide', DEFAULTS.privHideSet);
+
+let currentAvatarType      = load('avType', DEFAULTS.avatarType);
+let currentAvatarEmoji     = load('avEmoji', DEFAULTS.avatarEmoji);
+let currentAvatarImageSrc  = load('avImg', DEFAULTS.avatarImage);
+let uploadedPhotos         = load('photos', []);
+
+// pending (edit 중)
+let pendingAvatarType=currentAvatarType, pendingAvatarEmoji=currentAvatarEmoji, pendingAvatarImageSrc=currentAvatarImageSrc;
+
+let pinEntry='', authEntry='', authCallback=null;
+let modalEntry2='', mStep='verify', mNewTemp='';
+let privMode=false;
+
+const EMOJI_LIST=['👤','😀','😎','🧑','👩','🧔','👴','👵','🦸','🧑‍💻','🐱','🐶','🦊','🐼','🦁','🌸','⭐','🍀','🎯','🔥'];
+
+// ─── 초기화 ────────────────────────────────────────────────
+function init() {
+  // theme
+  setTheme(currentTheme, true);
+  // bio toggle
+  document.getElementById('bio-toggle').checked = bioEnabled;
+  toggleBio(bioEnabled);
+  // populate edit fields
+  fillEditFields();
+  // render
+  renderAll();
+  updateAllAvatars();
+  updateHeader();
+}
+
+function fillEditFields() {
+  document.getElementById('ef-name').value   = userData.name;
+  document.getElementById('ef-birth').value  = userData.birth;
+  document.getElementById('ef-gender').value = userData.gender;
+  document.getElementById('ef-ssn-front').value = userData.ssnFront;
+  document.getElementById('ef-ssn-back').value  = userData.ssnBack;
+  document.getElementById('ef-issue').value  = userData.issue;
+  document.getElementById('ef-expire').value = userData.expire;
+  document.getElementById('ef-phone').value  = userData.phone;
+  document.getElementById('ef-email').value  = userData.email;
+  document.getElementById('ef-addr').value   = userData.addr;
+  document.getElementById('ef-id').value     = userData.idNum;
+}
+
+function renderAll() {
+  renderCardFields();
+  renderCardFieldToggles();
+  renderHomeList();
+  renderHomeFieldToggles();
+  renderPrivFieldToggles();
+}
+
+function updateHeader() {
+  document.getElementById('d-name').textContent  = userData.name;
+  document.getElementById('s-name').textContent  = userData.name;
+  document.getElementById('d-issue').textContent = userData.issue;
+  document.getElementById('d-expire').textContent= userData.expire;
+  document.getElementById('d-id').textContent    = userData.idNum;
+  document.getElementById('s-id-sub').textContent= userData.idNum;
+}
+
+// ─── 아바타 ────────────────────────────────────────────────
+function toggleGallery() {
+  const panel=document.getElementById('gallery-panel');
+  panel.classList.toggle('open');
+  if(panel.classList.contains('open')){
+    pendingAvatarType=currentAvatarType; pendingAvatarEmoji=currentAvatarEmoji; pendingAvatarImageSrc=currentAvatarImageSrc;
+    renderEmojiGrid(); renderUploadGrid();
+  }
+}
+function closeGallery(){document.getElementById('gallery-panel').classList.remove('open');}
+function switchGTab(id){
+  ['emoji','upload'].forEach(t=>{
+    document.getElementById('gtab-'+t).classList.toggle('active',t===id);
+    document.getElementById('gc-'+t).classList.toggle('active',t===id);
+  });
+}
+function renderEmojiGrid(){
+  const grid=document.getElementById('emoji-grid'); grid.innerHTML='';
+  EMOJI_LIST.forEach(em=>{
+    const cell=document.createElement('div');
+    cell.className='emoji-cell'+(pendingAvatarType==='emoji'&&pendingAvatarEmoji===em?' sel':'');
+    cell.textContent=em;
+    cell.onclick=()=>{
+      pendingAvatarType='emoji'; pendingAvatarEmoji=em;
+      const wrap=document.getElementById('edit-av-wrap');
+      wrap.innerHTML=`<span style="font-size:32px;">${em}</span><div class="edit-av-btn"><i class="ti ti-camera"></i></div>`;
+      wrap.onclick=toggleGallery;
+      renderEmojiGrid(); renderUploadGrid();
+    };
+    grid.appendChild(cell);
+  });
+}
+function renderUploadGrid(){
+  const grid=document.getElementById('upload-preview-grid'); grid.innerHTML='';
+  uploadedPhotos.forEach(src=>{
+    const cell=document.createElement('div');
+    cell.className='upload-prev-cell'+(pendingAvatarType==='image'&&pendingAvatarImageSrc===src?' sel':'');
+    cell.innerHTML=`<img src="${src}"><div class="sel-mark"><i class="ti ti-check" style="font-size:9px;"></i></div>`;
+    cell.onclick=()=>{
+      pendingAvatarType='image'; pendingAvatarImageSrc=src;
+      const wrap=document.getElementById('edit-av-wrap');
+      wrap.innerHTML=`<img src="${src}" style="width:100%;height:100%;object-fit:cover;border-radius:18px;"><div class="edit-av-btn"><i class="ti ti-camera"></i></div>`;
+      wrap.onclick=toggleGallery;
+      renderUploadGrid(); renderEmojiGrid();
+    };
+    grid.appendChild(cell);
+  });
+}
+function handlePhotoUpload(e){
+  const file=e.target.files[0]; if(!file)return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    const src=ev.target.result;
+    if(!uploadedPhotos.includes(src)) uploadedPhotos.push(src);
+    save('photos', uploadedPhotos);
+    pendingAvatarType='image'; pendingAvatarImageSrc=src;
+    const wrap=document.getElementById('edit-av-wrap');
+    wrap.innerHTML=`<img src="${src}" style="width:100%;height:100%;object-fit:cover;border-radius:18px;"><div class="edit-av-btn"><i class="ti ti-camera"></i></div>`;
+    wrap.onclick=toggleGallery;
+    switchGTab('upload'); renderUploadGrid(); renderEmojiGrid();
+  };
+  reader.readAsDataURL(file);
+  e.target.value='';
+}
+function applyAvatar(){
+  currentAvatarType=pendingAvatarType; currentAvatarEmoji=pendingAvatarEmoji; currentAvatarImageSrc=pendingAvatarImageSrc;
+  save('avType',currentAvatarType); save('avEmoji',currentAvatarEmoji); save('avImg',currentAvatarImageSrc);
+  updateAllAvatars();
+}
+function updateAllAvatars(){
+  const homeAv=document.getElementById('home-av');
+  const myinfoAv=document.getElementById('myinfo-av');
+  const editWrap=document.getElementById('edit-av-wrap');
+  if(currentAvatarType==='image'&&currentAvatarImageSrc){
+    const img=`<img src="${currentAvatarImageSrc}" style="width:100%;height:100%;object-fit:cover;">`;
+    homeAv.innerHTML=img; myinfoAv.innerHTML=img;
+    editWrap.innerHTML=`<img src="${currentAvatarImageSrc}" style="width:100%;height:100%;object-fit:cover;border-radius:18px;"><div class="edit-av-btn"><i class="ti ti-camera"></i></div>`;
+  } else {
+    homeAv.innerHTML=`<span style="font-size:26px;">${currentAvatarEmoji}</span>`;
+    myinfoAv.innerHTML=`<span style="font-size:30px;">${currentAvatarEmoji}</span>`;
+    editWrap.innerHTML=`<span style="font-size:32px;">${currentAvatarEmoji}</span><div class="edit-av-btn"><i class="ti ti-camera"></i></div>`;
+  }
+  editWrap.onclick=toggleGallery;
+}
+
+// ─── 필드 렌더 ─────────────────────────────────────────────
+const cardFieldDefs=[
+  {key:'birth', label:'생년월일', get:()=>userData.birth},
+  {key:'gender', label:'성별', get:()=>userData.gender},
+];
+const homeFieldDefs=[
+  {key:'phone', label:'전화번호', icon:'ti-phone',       get:()=>userData.phone,            mask:'●●●-●●●●-●●●●'},
+  {key:'email', label:'이메일',   icon:'ti-mail',        get:()=>userData.email,            mask:'h●●●@●●●●●.com'},
+  {key:'addr',  label:'주소',     icon:'ti-map-pin',     get:()=>userData.addr,             mask:'●●●●●● ●●● ●●●●●●'},
+  {key:'ssn',   label:'주민등록번호', icon:'ti-credit-card', get:()=>userData.ssnFront+'-'+userData.ssnBack, mask:'●●●●●●-●●●●●●●'},
+];
+
+function renderHomeList(){
+  const el=document.getElementById('home-field-list'); el.innerHTML='';
+  homeFieldDefs.forEach(f=>{
+    if(!homeFieldVis[f.key])return;
+    const row=document.createElement('div'); row.className='irow';
+    const isHidden=privMode&&privHideSet[f.key];
+    row.innerHTML=`<i class="ti ${f.icon} iico"></i><div class="itxt"><div class="iname">${f.label}</div><div class="${isHidden?'ival hidden':'ival'}">${isHidden?f.mask:f.get()}</div></div>`;
+    el.appendChild(row);
+  });
+}
+function renderCardFields(){
+  const w=document.getElementById('card-fields-wrap'); w.innerHTML='';
+  cardFieldDefs.forEach(f=>{
+    if(!cardFieldVis[f.key])return;
+    const div=document.createElement('div'); div.className='fi';
+    div.innerHTML=`<div class="fl">${f.label}</div><div class="fv">${f.get()}</div>`;
+    w.appendChild(div);
+  });
+}
+function renderCardFieldToggles(){
+  const c=document.getElementById('card-field-toggles'); c.innerHTML='';
+  cardFieldDefs.forEach(f=>{
+    const row=document.createElement('div'); row.className='check-row';
+    row.innerHTML=`<span class="check-lbl">${f.label}</span><div class="cbox${cardFieldVis[f.key]?' checked':''}" id="cbx-${f.key}"><i class="ti ti-check"></i></div>`;
+    row.onclick=()=>{cardFieldVis[f.key]=!cardFieldVis[f.key];save('cardVis',cardFieldVis);renderCardFields();renderCardFieldToggles();};
+    c.appendChild(row);
+  });
+}
+function renderHomeFieldToggles(){
+  const c=document.getElementById('home-field-toggles'); c.innerHTML='';
+  homeFieldDefs.forEach(f=>{
+    const row=document.createElement('div'); row.className='check-row';
+    row.innerHTML=`<span class="check-lbl">${f.label}</span><div class="cbox${homeFieldVis[f.key]?' checked':''}" id="hcbx-${f.key}"><i class="ti ti-check"></i></div>`;
+    row.onclick=()=>{homeFieldVis[f.key]=!homeFieldVis[f.key];save('homeVis',homeFieldVis);renderHomeList();renderHomeFieldToggles();};
+    c.appendChild(row);
+  });
+}
+function renderPrivFieldToggles(){
+  const c=document.getElementById('priv-field-toggles'); c.innerHTML='';
+  homeFieldDefs.forEach(f=>{
+    const checked=privHideSet[f.key];
+    const row=document.createElement('div'); row.className='check-row';
+    row.innerHTML=`<div style="flex:1"><div class="check-lbl">${f.label}</div><div style="font-size:10px;margin-top:2px;color:${checked?'#7C6FFF':'rgba(128,128,128,0.5)'};">${checked?'보호모드 시 숨김':'보호모드에서도 표시'}</div></div><div class="cbox${checked?' checked':''}" id="pcbx-${f.key}"><i class="ti ti-eye-off"></i></div>`;
+    row.onclick=()=>{privHideSet[f.key]=!privHideSet[f.key];save('privHide',privHideSet);renderPrivFieldToggles();if(privMode)renderHomeList();};
+    c.appendChild(row);
+  });
+}
+
+// ─── 저장 ──────────────────────────────────────────────────
+function saveInfo(){
+  const g=id=>document.getElementById(id).value.trim();
+  userData.name    = g('ef-name')    || userData.name;
+  userData.birth   = g('ef-birth')   || userData.birth;
+  userData.gender  = g('ef-gender')  || userData.gender;
+  userData.ssnFront= g('ef-ssn-front')|| userData.ssnFront;
+  userData.ssnBack = g('ef-ssn-back') || userData.ssnBack;
+  userData.issue   = g('ef-issue')   || userData.issue;
+  userData.expire  = g('ef-expire')  || userData.expire;
+  userData.phone   = g('ef-phone')   || userData.phone;
+  userData.email   = g('ef-email')   || userData.email;
+  userData.addr    = g('ef-addr')    || userData.addr;
+  userData.idNum   = g('ef-id')      || userData.idNum;
+  save('userData', userData);
+  applyAvatar();
+  closeGallery();
+  fillEditFields();
+  updateHeader();
+  renderAll();
+  showToast('저장되었습니다');
+  setTimeout(()=>go('myinfo'),1400);
+}
+
+// ─── 개인정보 보호 ──────────────────────────────────────────
+function onPrivToggle(checked){
+  if(!checked){
+    document.getElementById('master-chk').checked=true;
+    openAuthModal('개인정보 보호 해제','보호 모드를 해제하려면 인증이 필요합니다',()=>{
+      document.getElementById('master-chk').checked=false;
+      applyPrivMode(false);
+    });
+  } else { applyPrivMode(true); }
+}
+function applyPrivMode(on){
+  privMode=on;
+  document.getElementById('priv-sub').textContent=on?'활성화 — 선택 항목 숨김 중':'비활성화 — 정보 표시 중';
+  renderHomeList();
+}
+
+// ─── 테마 ──────────────────────────────────────────────────
+function setTheme(t, skipSave){
+  currentTheme=t;
+  const app=document.getElementById('app');
+  app.classList.remove('dark','light'); app.classList.add(t);
+  ['dark','light'].forEach(x=>{
+    document.getElementById('theme-'+x).classList.toggle('selected',x===t);
+    document.getElementById('theme-'+x+'-check').style.opacity=x===t?'1':'0';
+  });
+  document.querySelector('meta[name="theme-color"]').content=t==='dark'?'#09090f':'#f0f0f8';
+  if(!skipSave) save('theme',t);
+}
+
+// ─── 탭 이동 ───────────────────────────────────────────────
+function switchStab(id){
+  ['sec','mgr','etc'].forEach(s=>{
+    document.getElementById('stab-'+s).classList.toggle('active',s===id);
+    document.getElementById('sc-'+s).classList.toggle('active',s===id);
+  });
+}
+function go(name){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('s-'+name).classList.add('active');
+  document.querySelectorAll('.tbtn').forEach(b=>b.classList.remove('active'));
+  const tb=document.getElementById('t-'+name);
+  if(tb) tb.classList.add('active');
+  if(name!=='edit') closeGallery();
+  if(name==='edit') fillEditFields();
+}
+function tryGoMyInfo(){
+  openAuthModal('내 정보 접근 인증','내 정보 탭에 접근하려면 인증이 필요합니다',()=>go('myinfo'));
+}
+
+// ─── 생체 인증 ─────────────────────────────────────────────
+function toggleBio(on){
+  bioEnabled=on;
+  save('bio',on);
+  document.getElementById('bio-area-lock').style.display=on?'flex':'none';
+  const br=document.getElementById('auth-bio-row');
+  if(br) br.style.display=on?'flex':'none';
+}
+
+// ─── 잠금 ──────────────────────────────────────────────────
+function pinKey(d){if(pinEntry.length>=4)return;pinEntry+=d;updateLockDots();}
+function pinDel(){if(pinEntry.length>0){pinEntry=pinEntry.slice(0,-1);updateLockDots();}}
+function pinConfirm(){
+  if(!pinEntry.length)return;
+  if(pinEntry===currentPIN){
+    for(let i=0;i<4;i++){const d=document.getElementById('ld'+i);d.classList.remove('filled');d.classList.add('success');}
+    setTimeout(()=>unlock(),400);
+  } else {
+    for(let i=0;i<4;i++){const d=document.getElementById('ld'+i);d.classList.remove('filled');d.classList.add('error');}
+    document.getElementById('lock-error').textContent='PIN이 올바르지 않습니다';
+    setTimeout(()=>{pinEntry='';updateLockDots();for(let i=0;i<4;i++)document.getElementById('ld'+i).classList.remove('error','success');document.getElementById('lock-error').textContent='';},900);
+  }
+}
+function updateLockDots(){for(let i=0;i<4;i++){const d=document.getElementById('ld'+i);d.classList.remove('filled','error','success');if(i<pinEntry.length)d.classList.add('filled');}}
+function bioAuth(){
+  if(!bioEnabled)return;
+  const wrap=document.getElementById('bio-wrap'),lbl=document.getElementById('bio-label');
+  wrap.classList.add('scanning');lbl.classList.add('scanning');lbl.textContent='인식 중...';
+  document.getElementById('lock-error').textContent='';
+  setTimeout(()=>{wrap.classList.remove('scanning');lbl.classList.remove('scanning');lbl.textContent='생체 인증으로 잠금 해제';for(let i=0;i<4;i++)document.getElementById('ld'+i).classList.add('success');setTimeout(()=>unlock(),400);},1000);
+}
+function unlock(){document.getElementById('lock-screen').classList.remove('active');pinEntry='';updateLockDots();for(let i=0;i<4;i++)document.getElementById('ld'+i).classList.remove('filled','error','success');}
+function lockApp(){document.getElementById('lock-screen').classList.add('active');go('home');}
+
+// ─── Auth Modal ────────────────────────────────────────────
+function openAuthModal(title,sub,cb){
+  authCallback=cb; authEntry='';
+  document.getElementById('auth-modal-title').textContent=title;
+  document.getElementById('auth-modal-sub').textContent=sub;
+  document.getElementById('auth-err').textContent='';
+  document.getElementById('auth-bio-row').style.display=bioEnabled?'flex':'none';
+  updateAuthDots();
+  document.getElementById('auth-overlay').classList.add('active');
+}
+function closeAuthModal(){document.getElementById('auth-overlay').classList.remove('active');authEntry='';}
+function updateAuthDots(){for(let i=0;i<4;i++){const d=document.getElementById('ad'+i);d.classList.remove('filled','error');if(i<authEntry.length)d.classList.add('filled');}}
+function aKey(d){if(authEntry.length>=4)return;authEntry+=d;updateAuthDots();}
+function aDel(){if(authEntry.length>0){authEntry=authEntry.slice(0,-1);updateAuthDots();}}
+function aConfirm(){
+  if(!authEntry.length)return;
+  if(authEntry===currentPIN){closeAuthModal();if(authCallback)authCallback();}
+  else{
+    for(let i=0;i<4;i++)document.getElementById('ad'+i).classList.add('error');
+    document.getElementById('auth-err').textContent='PIN이 올바르지 않습니다';
+    setTimeout(()=>{authEntry='';updateAuthDots();for(let i=0;i<4;i++)document.getElementById('ad'+i).classList.remove('error','filled');document.getElementById('auth-err').textContent='';},900);
+  }
+}
+function authBio(){const r=document.getElementById('auth-bio-row');r.style.opacity='0.5';setTimeout(()=>{r.style.opacity='1';closeAuthModal();if(authCallback)authCallback();},800);}
+
+// ─── PIN Change Modal ──────────────────────────────────────
+function openChangePIN(){mStep='verify';modalEntry2='';document.getElementById('modal-title').textContent='현재 PIN 입력';document.getElementById('modal-sub').textContent='보안을 위해 현재 PIN을 먼저 입력하세요';document.getElementById('modal-err').textContent='';updateMDots();document.getElementById('pin-change-overlay').classList.add('active');}
+function closeModal(){document.getElementById('pin-change-overlay').classList.remove('active');modalEntry2='';}
+function updateMDots(){for(let i=0;i<4;i++){const d=document.getElementById('md'+i);d.classList.remove('filled','error');if(i<modalEntry2.length)d.classList.add('filled');}}
+function mKey(d){if(modalEntry2.length>=4)return;modalEntry2+=d;updateMDots();}
+function mDel(){if(modalEntry2.length>0){modalEntry2=modalEntry2.slice(0,-1);updateMDots();}}
+function mConfirm(){
+  if(!modalEntry2.length)return;
+  if(mStep==='verify'){
+    if(modalEntry2===currentPIN){mStep='new';mNewTemp='';modalEntry2='';document.getElementById('modal-title').textContent='새 PIN 입력';document.getElementById('modal-sub').textContent='사용할 새 PIN 4자리를 입력하세요';document.getElementById('modal-err').textContent='';updateMDots();}
+    else{for(let i=0;i<4;i++)document.getElementById('md'+i).classList.add('error');document.getElementById('modal-err').textContent='현재 PIN이 올바르지 않습니다';setTimeout(()=>{modalEntry2='';updateMDots();for(let i=0;i<4;i++)document.getElementById('md'+i).classList.remove('error');document.getElementById('modal-err').textContent='';},900);}
+  } else if(mStep==='new'){
+    mNewTemp=modalEntry2;modalEntry2='';mStep='confirm';document.getElementById('modal-title').textContent='새 PIN 확인';document.getElementById('modal-sub').textContent='새 PIN을 한 번 더 입력하세요';document.getElementById('modal-err').textContent='';updateMDots();
+  } else if(mStep==='confirm'){
+    if(modalEntry2===mNewTemp){currentPIN=mNewTemp;save('pin',currentPIN);closeModal();showToast('PIN이 변경되었습니다');}
+    else{for(let i=0;i<4;i++)document.getElementById('md'+i).classList.add('error');document.getElementById('modal-err').textContent='PIN이 일치하지 않습니다';setTimeout(()=>{modalEntry2='';mNewTemp='';mStep='new';updateMDots();for(let i=0;i<4;i++)document.getElementById('md'+i).classList.remove('error');document.getElementById('modal-title').textContent='새 PIN 입력';document.getElementById('modal-sub').textContent='사용할 새 PIN 4자리를 입력하세요';document.getElementById('modal-err').textContent='';},1000);}
+  }
+}
+
+// ─── 데이터 초기화 ─────────────────────────────────────────
+function confirmClearData(){document.getElementById('clear-overlay').classList.add('active');}
+function doClearData(){
+  localStorage.clear();
+  showToast('초기화되었습니다');
+  setTimeout(()=>location.reload(),1500);
+}
+
+// ─── Toast ─────────────────────────────────────────────────
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),1800);
+}
+
+// ─── 실행 ──────────────────────────────────────────────────
+init();
+</script>
+</body>
+</html>
