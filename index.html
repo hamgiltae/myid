@@ -199,6 +199,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;position
 .upload-prev-cell.sel{border-color:#7C6FFF;}
 .upload-prev-cell .sel-mark{display:none;position:absolute;top:3px;right:3px;background:#7C6FFF;border-radius:50%;width:16px;height:16px;align-items:center;justify-content:center;font-size:9px;color:#fff;}
 .upload-prev-cell.sel .sel-mark{display:flex;}
+.upload-prev-cell .del-btn{position:absolute;top:3px;left:3px;background:rgba(200,50,50,0.85);border-radius:50%;width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;opacity:0;transition:opacity .15s;z-index:3;}
+.upload-prev-cell:hover .del-btn{opacity:1;}
 
 .esec-title{font-size:9px;letter-spacing:1px;text-transform:uppercase;margin:14px 0 7px 2px;}
 .dark .esec-title{color:rgba(255,255,255,0.3);}.light .esec-title{color:rgba(0,0,0,0.4);}
@@ -264,7 +266,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;position
 /* Lock screen */
 .lock-screen{
   display:none;position:absolute;inset:0;z-index:50;
-  flex-direction:column;align-items:center;
+  flex-direction:column;align-items:center;justify-content:center;
   padding:calc(40px + var(--sat)) 24px calc(24px + var(--sab));
 }
 .lock-screen.active{display:flex;}
@@ -287,17 +289,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;position
 .pkey.del{font-size:16px;}.dark .pkey.del{color:#888;}.light .pkey.del{color:#888;}
 .pkey.confirm-key{background:#7C6FFF !important;border-color:#7C6FFF !important;font-size:14px;color:#fff !important;font-weight:600;}
 .lock-error{font-size:11px;color:#d06060;min-height:16px;text-align:center;margin-bottom:8px;}
-.bio-area{width:100%;display:flex;flex-direction:column;align-items:center;margin-top:auto;padding-top:12px;border-top:0.5px solid;}
-.dark .bio-area{border-color:#1e1e32;}.light .bio-area{border-color:#ccc;}
-.bio-icon-wrap{width:62px;height:62px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin-bottom:10px;cursor:pointer;transition:border-color .2s;border:1.5px solid;}
-.dark .bio-icon-wrap{background:#13132a;border-color:#2a2a50;}
-.light .bio-icon-wrap{background:#e8e8f8;border-color:#c0c0e0;}
-.bio-icon-wrap:hover{border-color:#7C6FFF;}
-.bio-icon-wrap.scanning{border-color:#7C6FFF;animation:bioscan 1s ease-in-out;}
-@keyframes bioscan{0%{box-shadow:0 0 0 0 rgba(124,111,255,0.5);}70%{box-shadow:0 0 0 12px rgba(124,111,255,0);}100%{box-shadow:0 0 0 0 rgba(124,111,255,0);}}
-.bio-fp{width:34px;height:34px;color:#7C6FFF;}
-.bio-label{font-size:11px;}.dark .bio-label{color:rgba(255,255,255,0.4);}.light .bio-label{color:rgba(0,0,0,0.4);}
-.bio-label.scanning{color:#7C6FFF !important;}
 
 /* Overlays / Modals */
 .overlay{display:none;position:absolute;inset:0;background:rgba(0,0,0,0.7);z-index:60;align-items:flex-end;justify-content:center;}
@@ -346,12 +337,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;position
       <div class="pkey confirm-key" onclick="pinConfirm()">확인</div>
     </div>
     <div class="lock-error" id="lock-error"></div>
-    <div class="bio-area" id="bio-area-lock">
-      <div class="bio-icon-wrap" id="bio-wrap" onclick="bioAuth()">
-        <svg class="bio-fp" viewBox="0 0 34 34" fill="none"><path d="M17 3C9.268 3 3 9.268 3 17s6.268 14 14 14 14-6.268 14-14S24.732 3 17 3z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M10 17c0-3.866 3.134-7 7-7s7 3.134 7 7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M13 17c0-2.21 1.79-4 4-4s4 1.79 4 4c0 2.21-1.79 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M17 17v4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M7 12c1.2-3.5 4.5-6 8.5-6.2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M27 12c-.8-2.3-2.5-4.2-4.7-5.3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M7 22c1 2 2.7 3.7 4.8 4.7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M27 22c-1.2 3-4 5.2-7.3 5.8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-      </div>
-      <div class="bio-label" id="bio-label">생체 인증으로 잠금 해제</div>
-    </div>
   </div>
 
   <!-- Main area (shown after unlock) -->
@@ -418,14 +403,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;position
           </div>
           <div class="esec-title">기본 정보</div>
           <div class="efield"><div class="eflabel">이름</div><input class="efinput" id="ef-name" type="text" placeholder="이름"></div>
-          <div class="efield"><div class="eflabel">생년월일</div><input class="efinput" id="ef-birth" type="text" placeholder="예: 1995.03.22"></div>
+          <div class="efield"><div class="eflabel">생년월일</div><input class="efinput" id="ef-birth" type="text" placeholder="예: 1995.03.22" inputmode="numeric" maxlength="10" oninput="formatBirthInput(this)"></div>
           <div class="efield"><div class="eflabel">성별</div><input class="efinput" id="ef-gender" type="text" placeholder="남성 / 여성"></div>
           <div class="esec-title">주민등록번호</div>
           <div class="efield"><div class="eflabel">앞자리</div><input class="efinput" id="ef-ssn-front" type="text" maxlength="6" placeholder="950322" inputmode="numeric"></div>
           <div class="efield"><div class="eflabel">뒷자리</div><input class="efinput" id="ef-ssn-back" type="password" maxlength="7" placeholder="1234567" inputmode="numeric"></div>
           <div class="esec-title">신분증 유효기간</div>
-          <div class="efield"><div class="eflabel">발급일</div><input class="efinput" id="ef-issue" type="text" placeholder="2024.01.15"></div>
-          <div class="efield"><div class="eflabel">만료일</div><input class="efinput" id="ef-expire" type="text" placeholder="2028.01.14"></div>
+          <div class="efield"><div class="eflabel">발급일</div><input class="efinput" id="ef-issue" type="text" placeholder="2024.01.15" inputmode="numeric" maxlength="10" oninput="formatBirthInput(this)"></div>
+          <div class="efield"><div class="eflabel">만료일</div><input class="efinput" id="ef-expire" type="text" placeholder="2028.01.14" inputmode="numeric" maxlength="10" oninput="formatBirthInput(this)"></div>
           <div class="esec-title">연락처</div>
           <div class="efield"><div class="eflabel">전화번호</div><input class="efinput" id="ef-phone" type="tel" placeholder="010-0000-0000"></div>
           <div class="efield"><div class="eflabel">이메일</div><input class="efinput" id="ef-email" type="email" placeholder="email@example.com"></div>
@@ -456,9 +441,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;position
           </div>
           <div class="stab-content active" id="sc-sec">
             <div class="srow" onclick="openChangePIN()"><i class="ti ti-lock sico"></i><span class="slbl">PIN 비밀번호 변경</span><i class="ti ti-chevron-right schev"></i></div>
-            <div class="srow"><i class="ti ti-fingerprint sico"></i><span class="slbl">생체 인증</span>
-              <label class="mswitch"><input type="checkbox" id="bio-toggle" checked onchange="toggleBio(this.checked)"><div class="mtrack"></div><div class="mthumb"></div></label>
-            </div>
             <div style="margin-top:12px;">
               <button onclick="lockApp()" style="display:block;width:100%;text-align:center;padding:12px;background:rgba(220,50,50,0.08);border:0.5px solid rgba(220,50,50,0.25);border-radius:12px;font-size:13px;color:#d06060;cursor:pointer;font-family:inherit;">잠금 화면으로 돌아가기</button>
             </div>
@@ -516,10 +498,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;position
         <div class="mkey confirm" onclick="aConfirm()">확인</div>
       </div>
       <div class="modal-err" id="auth-err"></div>
-      <div id="auth-bio-row" style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:10px;cursor:pointer;" onclick="authBio()">
-        <i class="ti ti-fingerprint" style="font-size:20px;color:#7C6FFF;"></i>
-        <span style="font-size:12px;color:#7C6FFF;">생체 인증으로 확인</span>
-      </div>
       <button class="modal-cancel" onclick="closeAuthModal()">취소</button>
     </div>
   </div>
@@ -633,9 +611,6 @@ const EMOJI_LIST=['👤','😀','😎','🧑','👩','🧔','👴','👵','🦸'
 function init() {
   // theme
   setTheme(currentTheme, true);
-  // bio toggle
-  document.getElementById('bio-toggle').checked = bioEnabled;
-  toggleBio(bioEnabled);
   // populate edit fields
   fillEditFields();
   // render
@@ -709,10 +684,11 @@ function renderEmojiGrid(){
 }
 function renderUploadGrid(){
   const grid=document.getElementById('upload-preview-grid'); grid.innerHTML='';
-  uploadedPhotos.forEach(src=>{
+  uploadedPhotos.forEach((src,idx)=>{
     const cell=document.createElement('div');
     cell.className='upload-prev-cell'+(pendingAvatarType==='image'&&pendingAvatarImageSrc===src?' sel':'');
-    cell.innerHTML=`<img src="${src}"><div class="sel-mark"><i class="ti ti-check" style="font-size:9px;"></i></div>`;
+    cell.innerHTML=`<img src="${src}"><div class="sel-mark"><i class="ti ti-check" style="font-size:9px;"></i></div><div class="del-btn" title="삭제"><i class="ti ti-x" style="font-size:9px;"></i></div>`;
+    cell.querySelector('.del-btn').onclick=(e)=>{e.stopPropagation();deletePhoto(idx);};
     cell.onclick=()=>{
       pendingAvatarType='image'; pendingAvatarImageSrc=src;
       const wrap=document.getElementById('edit-av-wrap');
@@ -722,6 +698,23 @@ function renderUploadGrid(){
     };
     grid.appendChild(cell);
   });
+}
+function deletePhoto(idx){
+  const src=uploadedPhotos[idx];
+  uploadedPhotos.splice(idx,1);
+  save('photos',uploadedPhotos);
+  if(pendingAvatarImageSrc===src){
+    pendingAvatarType='emoji'; pendingAvatarImageSrc='';
+    const wrap=document.getElementById('edit-av-wrap');
+    wrap.innerHTML=`<span style="font-size:32px;">${pendingAvatarEmoji}</span><div class="edit-av-btn"><i class="ti ti-camera"></i></div>`;
+    wrap.onclick=toggleGallery;
+  }
+  if(currentAvatarImageSrc===src){
+    currentAvatarType='emoji'; currentAvatarImageSrc='';
+    save('avType','emoji'); save('avImg','');
+    updateAllAvatars();
+  }
+  renderUploadGrid(); renderEmojiGrid();
 }
 function handlePhotoUpload(e){
   const file=e.target.files[0]; if(!file)return;
@@ -823,6 +816,17 @@ function renderPrivFieldToggles(){
   });
 }
 
+// ─── 날짜 자동 포맷 ────────────────────────────────────────
+function formatBirthInput(el){
+  let v=el.value.replace(/[^0-9]/g,'');
+  if(v.length>8) v=v.slice(0,8);
+  let out='';
+  if(v.length<=4) out=v;
+  else if(v.length<=6) out=v.slice(0,4)+'.'+v.slice(4);
+  else out=v.slice(0,4)+'.'+v.slice(4,6)+'.'+v.slice(6);
+  el.value=out;
+}
+
 // ─── 저장 ──────────────────────────────────────────────────
 function saveInfo(){
   const g=id=>document.getElementById(id).value.trim();
@@ -896,14 +900,9 @@ function tryGoMyInfo(){
   openAuthModal('내 정보 접근 인증','내 정보 탭에 접근하려면 인증이 필요합니다',()=>go('myinfo'));
 }
 
-// ─── 생체 인증 ─────────────────────────────────────────────
-function toggleBio(on){
-  bioEnabled=on;
-  save('bio',on);
-  document.getElementById('bio-area-lock').style.display=on?'flex':'none';
-  const br=document.getElementById('auth-bio-row');
-  if(br) br.style.display=on?'flex':'none';
-}
+function bioAuth(){}
+function toggleBio(){}
+function authBio(){}
 
 // ─── 잠금 ──────────────────────────────────────────────────
 function pinKey(d){if(pinEntry.length>=4)return;pinEntry+=d;updateLockDots();}
@@ -920,13 +919,9 @@ function pinConfirm(){
   }
 }
 function updateLockDots(){for(let i=0;i<4;i++){const d=document.getElementById('ld'+i);d.classList.remove('filled','error','success');if(i<pinEntry.length)d.classList.add('filled');}}
-function bioAuth(){
-  if(!bioEnabled)return;
-  const wrap=document.getElementById('bio-wrap'),lbl=document.getElementById('bio-label');
-  wrap.classList.add('scanning');lbl.classList.add('scanning');lbl.textContent='인식 중...';
-  document.getElementById('lock-error').textContent='';
-  setTimeout(()=>{wrap.classList.remove('scanning');lbl.classList.remove('scanning');lbl.textContent='생체 인증으로 잠금 해제';for(let i=0;i<4;i++)document.getElementById('ld'+i).classList.add('success');setTimeout(()=>unlock(),400);},1000);
-}
+function bioAuth(){}
+function toggleBio(){}
+function authBio(){}
 function unlock(){document.getElementById('lock-screen').classList.remove('active');pinEntry='';updateLockDots();for(let i=0;i<4;i++)document.getElementById('ld'+i).classList.remove('filled','error','success');}
 function lockApp(){document.getElementById('lock-screen').classList.add('active');go('home');}
 
@@ -936,7 +931,6 @@ function openAuthModal(title,sub,cb){
   document.getElementById('auth-modal-title').textContent=title;
   document.getElementById('auth-modal-sub').textContent=sub;
   document.getElementById('auth-err').textContent='';
-  document.getElementById('auth-bio-row').style.display=bioEnabled?'flex':'none';
   updateAuthDots();
   document.getElementById('auth-overlay').classList.add('active');
 }
@@ -953,7 +947,6 @@ function aConfirm(){
     setTimeout(()=>{authEntry='';updateAuthDots();for(let i=0;i<4;i++)document.getElementById('ad'+i).classList.remove('error','filled');document.getElementById('auth-err').textContent='';},900);
   }
 }
-function authBio(){const r=document.getElementById('auth-bio-row');r.style.opacity='0.5';setTimeout(()=>{r.style.opacity='1';closeAuthModal();if(authCallback)authCallback();},800);}
 
 // ─── PIN Change Modal ──────────────────────────────────────
 function openChangePIN(){mStep='verify';modalEntry2='';document.getElementById('modal-title').textContent='현재 PIN 입력';document.getElementById('modal-sub').textContent='보안을 위해 현재 PIN을 먼저 입력하세요';document.getElementById('modal-err').textContent='';updateMDots();document.getElementById('pin-change-overlay').classList.add('active');}
